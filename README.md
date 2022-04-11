@@ -31,10 +31,10 @@ Second one,
 
 
 ## Team
-Suyeon Wang: wangsunny6143 at gmail.com   (contact person)
-JaeKyeong Kim: 2143575 at donga.ac.kr
-Jungkyu Han: jkhan at dau.ac.kr
-Sejin Chun: sjchun at dau.ac.kr
+- Suyeon Wang: wangsunny6143 at gmail.com   (contact person)
+- JaeKyeong Kim: 2143575 at donga.ac.kr
+- Jungkyu Han: jkhan at dau.ac.kr
+- Sejin Chun: sjchun at dau.ac.kr
 
 ## license
 ```
