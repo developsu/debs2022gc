@@ -28,3 +28,11 @@ Second one,
 
 ## requirements
 [Docker](https://www.docker.com) 
+
+
+## license
+```
+Sebastian Frischbier, Jawad Tahir, Christoph Doblander, Arne Hormann, Ruben Mayer. 
+The DEBS 2021 grand challenge: Detecting Trading Trends in Real Financial Tick Data. 
+Proceedings of the 16th ACM International Conference on Distributed and Event-based Systems (DEBS'22) 
+```
