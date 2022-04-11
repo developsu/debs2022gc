@@ -1,5 +1,5 @@
 # DEBS 2022 Grand Challenge 
-
+This github page contributes to DEBS 2022 Grand Challenge. 
 
 ## description
 
@@ -23,12 +23,18 @@ Second one,
  docker run -it pyspark:latest debs_2022_gc
 ```
 
-## Team
+
 
 
 ## requirements
 [Docker](https://www.docker.com) 
 
+
+## Team
+Suyeon Wang: wangsunny6143 at gmail.com   (contact person)
+JaeKyeong Kim: 2143575 at donga.ac.kr
+Jungkyu Han: jkhan at dau.ac.kr
+Sejin Chun: sjchun at dau.ac.kr
 
 ## license
 ```
