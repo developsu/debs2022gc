@@ -6,11 +6,11 @@ This github page contributes to DEBS 2022 Grand Challenge.
 ## installation
 We provide two kinds of execution environment for DEBS 22 GC testing
 
-First one, with google colab
+First one is online Jupyter Notebook.
 1. go to **google colab**
 2. move to MENU [File] -> [Open Notebook] -> Upload files 'DEBS_2022_GC_GROUP_4.ipynb'
 
-Second one, 
+Second one is your own local development environment through Docker. 
 1. downloads the compressed zip file from github and extract it in the folder you desire.
 2. Open the terminal, move to the folder, and type the following command  ( if docker is already installed, )
 ```
