@@ -1,4 +1,4 @@
-# debs2022gc
+# DEBS 2022 Grand Challenge 
 
 
 ## description
@@ -22,6 +22,8 @@ Second one,
 ```
  docker run -it pyspark:latest debs_2022_gc
 ```
+
+## Team
 
 
 ## requirements
