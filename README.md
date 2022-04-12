@@ -2,6 +2,7 @@
 This github page contributes to DEBS 2022 Grand Challenge. 
 
 ## description
+The 2022 DEBS Grand Challenge focuses on real-time complex event processing of real-world high-volume tick data provided by Infront Financial Technology (https://www.infrontfinance.com/). The goal of the challenge is to efficiently compute specific trend indicators and detect patterns resembling those used by real-life traders to decide on buying or selling on the financial markets.
 
 ## installation
 We provide two kinds of execution environment for DEBS 22 GC testing
