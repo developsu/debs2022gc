@@ -45,8 +45,8 @@ import ast
 
 import sys
 import os
-import time
 from datetime import datetime
+from datetime import timedelta
 
 import csv
 import pandas as pd
@@ -60,6 +60,7 @@ import grpc
 # python -m grpc_tools.protoc -I . --python_out=. --grpc_python_out=. challenger.proto
 import challenger_pb2 as ch
 import challenger_pb2_grpc as api
+import warnings
 from google.protobuf.timestamp_pb2 import Timestamp
 
 from pyngrok import ngrok # spark ui
@@ -80,7 +81,8 @@ def read_stream(folderDir):
         .option("header", "true") \
         .schema(get_schema()) \
         .load(path=folderDir)
-    
+
+
     return stream_df
 
 """This function represents the schema of stock market data"""
@@ -95,18 +97,13 @@ def get_schema():
         StructField("symbol", StringType(), True),
         StructField("Sectype", StringType(), True),
         StructField("lasttradeprice", DoubleType(), True),
-        StructField("lastTrade", TimestampType(), True)
+        StructField("lastTrade", TimestampType(), True),
+        StructField("seconds", LongType(), True),
+        StructField("nanos", LongType(), True)
     ])
 
 """The following functions calculate EMA38 and EMA100 indicators, respectively."""
 def calcEMA_func( lastTradePrice, prev_ema, days=38):
-    '''
-
-    :param lastTradePrice:
-    :param prev_ema:
-    :param days:
-    :return:
-    '''
     current_EMA = ( lastTradePrice * (2 / (days + 1)) ) + ( prev_ema  * (1 - 2 / (days + 1)) )
     return current_EMA
 
@@ -123,31 +120,17 @@ def EMA_Comp(nEMA38_MINUS_EMA100, pEMA38_MINUS_EMA100):
 
     return "Sell"
 
-"""## Streaming query 1"""
-def Query1(stream):
-    global logger, spark, prevEMA
-    logger.warn("query 1")
+def transform_calcEMA(stream):
+    # global spark, prevEMA
 
-    stream_df = stream.select("symbol", "Sectype", "lastTrade", "lasttradeprice").withWatermark("lastTrade", "5 minutes") \
+    stream_df = stream.select("symbol", "Sectype", "lastTrade", "lasttradeprice", "seconds", "nanos").withWatermark(
+        "lastTrade", "5 minutes") \
         .groupBy(window("lastTrade", "5 minutes", "5 minutes"), col("symbol")) \
-        .agg(lit(last("lasttradeprice")).alias("Last_Last"), lit(last("Sectype")).alias("Sectype_ext"))\
+        .agg(lit(last("lasttradeprice")).alias("lasttradeprice"), lit(last("Sectype")).alias("Sectype"),
+             lit(last("seconds")).alias("seconds"), lit(last("nanos")).alias("nanos")) \
         .orderBy("window")
 
-    stream_df = stream_df.withColumnRenamed("Sectype_ext", "Sectype")
-    stream_df = stream_df.withColumnRenamed("Last_Last", "lasttradeprice")
-
     stream_df = stream_df.withColumn("lastWindowTime", to_timestamp(stream_df.window.end, "yyyy-MM-dd HH:mm:ss"))
-
-    calcEMA = udf(calcEMA_func, DoubleType())
-
-
-    stream_df = stream_df.withColumn("prevEMA38", lit(1.0) )
-    stream_df = stream_df.withColumn("prevEMA100", lit(1.0) )
-
-    stream_df = stream_df.withColumn("EMA38", calcEMA(stream_df["lasttradeprice"], stream_df["prevEMA38"],  lit(38) ) )
-    stream_df = stream_df.withColumn("EMA100", calcEMA(stream_df["lasttradeprice"],stream_df["prevEMA100"], lit(100) ) )
-
-    stream_df = stream_df.select("symbol", "EMA38", "EMA100", "lasttradeprice", "lastWindowTime", "Sectype")
 
     return stream_df
 
@@ -183,7 +166,7 @@ def send_to_message_query2():
     tail_crossover = crossover.groupby(['symbol']).tail(3)
     tail_crossover = tail_crossover.reset_index(drop=True)
 
-    print(tail_crossover)
+    # print(tail_crossover)
 
     result_Q2 = ch.ResultQ2()
     list_crossover = list()
@@ -191,7 +174,7 @@ def send_to_message_query2():
     # serialize
     for i in range(len(tail_crossover)): # search for symbols required
       cross_over_event = ch.CrossoverEvent()
-      row = tail_crossover.loc[i,:]
+      row = tail_crossover.loc[i ,:]
       cross_over_event.symbol = row["symbol"]
 
       if row["BuyOrSell"] == "Buy":
@@ -204,12 +187,13 @@ def send_to_message_query2():
       else:
         cross_over_event.security_type = ch.SecurityType.Index
 
-      secondes_time = time.mktime(row["lastWindowTime"].timetuple())
-      cross_over_event.ts.seconds = int(secondes_time)
+      cross_over_event.ts.seconds = row['seconds']
+      cross_over_event.ts.nanos = row['nanos']
+
       list_crossover.append(cross_over_event)
 
     result_Q2.crossover_events.extend(list_crossover)
-    print(result_Q2.crossover_events)
+    # print(result_Q2.crossover_events)
 
     return result_Q2.crossover_events
 
@@ -217,7 +201,7 @@ def send_to_message_query2():
 This funtions saves the stream of stock market data as csv files.
 """
 def make_CSV_file(batch_no, events):
-    fieldnames = ["id", "symbol", "Sectype", "lasttradeprice", "lastTrade"]
+    fieldnames = ["id", "symbol", "Sectype", "lasttradeprice", "lastTrade", "seconds", "nanos"]
     event_list_dict = []
     for i in range(len(events)):
             temp_dict = {}
@@ -225,7 +209,11 @@ def make_CSV_file(batch_no, events):
             temp_dict['symbol'] = events[i].symbol
             temp_dict['Sectype'] = events[i].security_type
             temp_dict['lasttradeprice'] = events[i].last_trade_price
-            temp_dict['lastTrade'] = datetime.fromtimestamp(events[i].last_trade.seconds).strftime("%Y-%m-%d %H:%M:%S")
+            mills = timedelta(milliseconds= (events[i].last_trade.nanos / 1000000))
+            seconds = datetime.fromtimestamp(events[i].last_trade.seconds)
+            temp_dict['lastTrade'] = (mills + seconds).strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+            temp_dict['seconds'] = events[i].last_trade.seconds
+            temp_dict['nanos'] = events[i].last_trade.nanos
             event_list_dict.append(temp_dict)
 
     # print(event_list_dict)
@@ -236,7 +224,7 @@ def make_CSV_file(batch_no, events):
         writer.writerows(event_list_dict)
 
 
-def update_prevEMA(df_a):
+def execute_streamingQuery1(df_a):
     global prevEMA, crossover
 
     for idx, row in tqdm(df_a.iterrows(), total=df_a.shape[0], disable=True):
@@ -251,22 +239,22 @@ def update_prevEMA(df_a):
             prevEMA.loc[symbol] = {'symbol': symbol, 'EMA38': new_EMA38, 'EMA100': new_EMA100}
 
             new_row = {'symbol': symbol, 'lastWindowTime': row['lastWindowTime'], 'EMA38': new_EMA38,
-                       'EMA100': new_EMA100, 'Sectype': row['Sectype'], 'BuyOrSell': 'Stay'}
+                       'EMA100': new_EMA100, 'Sectype': row['Sectype'], 'BuyOrSell': 'Stay', 'seconds': row['seconds'], 'nanos': row['nanos']}
             crossover = crossover.append(pd.Series(new_row, index=crossover.columns, name=symbol))
-
 
         else: # new symbol
             new_EMA38 = calcEMA_func(row['lasttradeprice'], 0.0, 38)
             new_EMA100 = calcEMA_func(row['lasttradeprice'], 0.0, 100)
+
             new_row = {'symbol': symbol, 'lastWindowTime': row['lastWindowTime'], 'EMA38': new_EMA38,
-                       'EMA100': new_EMA100, 'Sectype': row['Sectype'], 'BuyOrSell': 'Stay'}
+                       'EMA100': new_EMA100, 'Sectype': row['Sectype'], 'BuyOrSell': 'Stay', 'seconds': row['seconds'], 'nanos': row['nanos']}
             crossover = crossover.append(pd.Series(new_row, index=crossover.columns, name=symbol))
 
             new_row = {'symbol': symbol, 'EMA38': new_EMA38, 'EMA100': new_EMA100}
             prevEMA = prevEMA.append(pd.Series(new_row, index=prevEMA.columns, name=symbol))
 
 
-def update_prevCrossover():
+def execute_streamingQuery2():
     global crossover, prevCrossover
 
     for idx, row in tqdm(crossover.iterrows(), total = crossover.shape[0], disable=True):
@@ -306,15 +294,20 @@ def main():
     global detectCrossover
     global prevEMA, crossover, prevCrossover
 
+    warnings.filterwarnings("ignore")
 
     """### initialize spark"""
     # start Spark application and get Spark session, logger and config
     # spark application 시작
     spark = SparkSession.builder.master("local[*]") \
-            .config("spark.executor.instances", "2") \
-            .config("spark.executor.cores", "2") \
+            .config("spark.executor.instances", "6") \
+            .config("spark.executor.cores", "15") \
+            .config("spark.default.parallelism", "300") \
+            .config("spark.executor.memory", "64G") \
             .config('spark.ui.port', '4050') \
-            .config("spark.driver.memory", "20g")\
+            .config("spark.driver.memory", "20g") \
+            .config("spark.sql.shuffle.partitions", "300") \
+            .config("spark.driver.cores", "12") \
             .config("spark.executor.memory", "20g") \
             .config("spark.memory.offHeap.enabled", "true") \
             .config("spark.memory.offHeap.size", "10g") \
@@ -322,8 +315,8 @@ def main():
             .appName("PySpark for DEBS 2022 GC").getOrCreate()
 
 
-    spark.conf.set("spark.sql.execution.arrow.enabled", "true")
-    spark.conf.set("spark.sql.execution.arrow.pyspark.enabled", "false")
+    # spark.conf.set("spark.sql.execution.arrow.pyspark.enabled", "true")
+    spark.conf.set("spark.sql.execution.arrow.pyspark.enabled", "true")
 
     logger = Log4j(spark)
     logger.warn("initialize spark")
@@ -340,7 +333,9 @@ def main():
                               'EMA38': pd.Series(dtype='float'),
                               'EMA100': pd.Series(dtype='float'),
                               'Sectype': pd.Series(dtype='str'),
-                              'BuyOrSell': pd.Series(dtype='str')})
+                              'BuyOrSell': pd.Series(dtype='str'),
+                              'seconds': pd.Series(dtype='int'),
+                              'nanos': pd.Series(dtype='int')})
     prevCrossover = pd.DataFrame({'symbol': pd.Series(dtype='str'),
                                   'Diff': pd.Series(dtype='float')})
     prevCrossover.set_index('symbol')
@@ -353,7 +348,7 @@ def main():
     """### Transform streaming data and define output sink&mode
     queries 1 and 2
     """
-    calcEMA = Query1(stream)
+    calcEMA = transform_calcEMA(stream)
     writer1 = calcEMA.writeStream.format("memory") \
         .outputMode("complete") \
         .option("truncate", False) \
@@ -391,7 +386,8 @@ def main():
 
             # batch.symbol로부터 받은 주식ID추출
             lookup_symbols = list(batch.lookup_symbols)
-            logger.warn(f"list for lookup: {lookup_symbols}")
+            # if batch.seq_id == 1977:
+            #     logger.warn(f"list for lookup: {lookup_symbols}")
             # print(lookup_symbols)
 
             # 1. every batch data is stored as csv files in the specific folder
@@ -399,10 +395,7 @@ def main():
 
             # 2. update the previous EMA table
             lastTrades = spark.sql("select * from EMA").filter(col('symbol').isin(lookup_symbols)).toPandas()
-            lastTrades.rename(columns={'EMA38': 'pEMA38'}, inplace=True)
-            lastTrades.rename(columns={'EMA100': 'pEMA100'}, inplace=True)
-
-            update_prevEMA(lastTrades)
+            execute_streamingQuery1(lastTrades)
 
             # 3. send the result of query 1 to the challenger system
             resultQ1 = ch.ResultQ1(
@@ -412,7 +405,7 @@ def main():
             stub.resultQ1(resultQ1)  # send the result of query 1 back
 
             # 4. update the previous crossover table
-            update_prevCrossover()
+            execute_streamingQuery2()
 
             # 5. send the result of query 2 to the challenger system
             resultQ2 = ch.ResultQ2(
