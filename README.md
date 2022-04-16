@@ -8,6 +8,8 @@ The 2022 DEBS Grand Challenge focuses on real-time complex event processing of h
 
 To meet their requirements,  We want to answer the Query1 that needs a tumbling window to calculate both EMA38 and EMA100 per symbol. Also, We want to answer the Query2 that finds the intersactions of both EMA38 and EMA100 per symbol. 
 
+We share the video where we explain our source code to Google Drive link: https://drive.google.com/drive/u/0/folders/1ZkLmpDywwpT029Qeo9VdLKm6nHZ1XgEF
+
 For more information, you can see the following link: https://2022.debs.org/call-for-grand-challenge-solutions/
 
 ## installation
