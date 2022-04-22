@@ -1,0 +1,40 @@
+version: "3"
+
+services:
+  client:
+    image: yanggak12/debs-visualization-fe:latest
+    container_name: local-client
+    ports:
+      - 3000:3000
+    networks:
+      debs-docker-net:
+        ipv4_address: 172.16.238.15
+
+  influxdb:
+    image: influxdb:1.4
+    container_name: local-influxdb
+    ports:
+      - 8086:8086
+    environment:
+      INFLUXDB_DB: debs_db
+    networks:
+      debs-docker-net:
+        ipv4_address: 172.16.238.13
+
+  server:
+    image: eddy5360/debs2022-prod:latest
+    container_name: local-server
+    ports:
+      - 8080:8080
+    environment:
+      SPRING_ENV: prod
+    networks:
+      debs-docker-net:
+        ipv4_address: 172.16.238.11
+
+networks:
+  debs-docker-net:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.16.238.0/24
