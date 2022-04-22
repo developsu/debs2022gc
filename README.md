@@ -42,6 +42,8 @@ Second one is your own local development environment through Docker.
 ## Team
 - Suyeon Wang: wangsunny6143 at gmail.com   (contact person)
 - JaeKyeong Kim: 2143575 at donga.ac.kr
+- Yoonsang Yang: yoonsang.developer at gmail.com
+- Jinseong Hwang: jinseong.dev at gmail.com
 - Jungkyu Han: jkhan at dau.ac.kr
 - Sejin Chun: sjchun at dau.ac.kr
 
