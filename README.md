@@ -4,9 +4,9 @@ This github page contributes to DEBS 2022 Grand Challenge.
 ## description
 We participate in the DEBS GC 2022 as team Group-4.
 
-The 2022 DEBS Grand Challenge focuses on real-time complex event processing of high-volume financial data. The goal of this challenge is to efficiently compute to EMA(Exponential Moving Average) as a tread tecnical indicator and detect cross patterns to decide on buying or selling on the financial markets.
+The 2022 DEBS Grand Challenge focuses on real-time complex event processing of high-volume financial data. The goal of this challenge is to efficiently compute to EMA(Exponential Moving Average) as a trend technical indicator and to detect cross patterns that helps decisions on buying or selling on financial markets.
 
-To meet their requirements,  We want to answer the Query1 that needs a tumbling window to calculate both EMA38 and EMA100 per symbol. Also, We want to answer the Query2 that finds the intersactions of both EMA38 and EMA100 per symbol. 
+To meet their requirements, our solution finds the query1 answers that calculate both EMA38 and EMA100 per symbol. Besides, our solution handles the query2 answer that finds the intersactions of both EMA38 and EMA100 per symbol. 
 
 We share the video where we explain our source code to Youtube link: https://www.youtube.com/watch?v=8dOlg4LXdGI
 
