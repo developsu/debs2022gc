@@ -20,7 +20,7 @@ import org.springframework.core.io.Resource;
 public class GoogleDriveConfig {
 
     private static final String appName = "debs-google-drive";
-    private static final String jsonFileName = "spring-market-347503-a9c79708dc3e.json";
+    private static final String jsonFileName = "spring-market-347503-100e3c98ce16.json";
 
     @Bean
     public Drive myDrive() {

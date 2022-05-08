@@ -6,7 +6,7 @@
 # Run InfluxDB and Server
 docker-compose up -d
 
-for retry_count in 1 2 3 4 5 6 7 8 9 10
+for retry_count in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
 do
   response=$(curl -s http://localhost:8080/actuator/health)
   up_count=$(echo $response | grep 'UP' | wc -l)
@@ -29,6 +29,6 @@ do
     exit 1
   fi
 
-  echo ">>> Fail Health check. Retry..."
+  echo ">>> Fail Health check. Retry... ($retry_count / 20)"
   sleep 10
 done

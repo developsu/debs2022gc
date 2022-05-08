@@ -5,4 +5,4 @@ build/
 out/
 dataset/
 *.csv
-config/*.json
+*.json
