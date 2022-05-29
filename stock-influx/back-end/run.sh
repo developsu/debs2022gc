@@ -8,7 +8,7 @@ docker-compose up -d
 
 for retry_count in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
 do
-  response=$(curl -s http://localhost:8080/actuator/health)
+  response=$(curl -s http://localhost/actuator/health)
   up_count=$(echo $response | grep 'UP' | wc -l)
 
   if [ $up_count -ge 1 ]
@@ -16,7 +16,7 @@ do
       echo ">>> Success Health check"
       echo "RUN SUCCESSFULLY"
       echo ">>> Start Data inserting from Google Drive"
-      curl -X POST "http://localhost:8080/v1/api/data" -H "accept: application/json;charset=UTF-8"
+      curl -s -X POST "http://localhost/v1/api/data" -H "accept: application/json;charset=UTF-8" &
       break
   else
       echo ">>> Health check status doesn't contain 'UP'."
