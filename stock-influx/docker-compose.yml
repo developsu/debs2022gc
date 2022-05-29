@@ -1,13 +1,26 @@
 version: "3"
 
 services:
+  client:
+    image: yanggak12/debs-visualization-fe:latest
+    container_name: local-client
+    ports:
+      - 3000:3000
+    networks:
+      debs-docker-net:
+        ipv4_address: 172.16.238.15
+    depends_on:
+      - proxy
+      - server
+      - influxdb
+
   proxy:
     image: nginx:latest
     container_name: local-proxy
     ports:
       - 80:80
     volumes:
-      - ./back-end/config/nginx.conf:/etc/nginx/nginx.conf
+      - ./config/nginx.conf:/etc/nginx/nginx.conf
     networks:
       debs-docker-net:
         ipv4_address: 172.16.238.20
@@ -22,7 +35,6 @@ services:
       - 8080:8080
     environment:
       SPRING_ENV: prod
-
     networks:
       debs-docker-net:
         ipv4_address: 172.16.238.11
