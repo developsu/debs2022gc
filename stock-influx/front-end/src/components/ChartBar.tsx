@@ -80,7 +80,15 @@ const ChartBar: React.FC<Props> = ({ symbol }) => {
           display: flex;
           justify-content: flex-end;
           position: absolute;
+          top: 10vh;
           right: 30px;
+          background-color: #7b7cb6;
+          color: #fff;
+          font-weight: 700;
+          font-size: 15px;
+          padding: 5px;
+          border-radius: 8px;
+          box-shadow: 3px 2px 2px #000;
         }
       `}</style>
     </div>
