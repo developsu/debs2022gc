@@ -20,7 +20,7 @@ services:
     ports:
       - 80:80
     volumes:
-      - ./config/nginx.conf:/etc/nginx/nginx.conf
+      - ./back-end/config/nginx.conf:/etc/nginx/nginx.conf
     networks:
       debs-docker-net:
         ipv4_address: 172.16.238.20
