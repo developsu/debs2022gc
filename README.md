@@ -49,7 +49,7 @@ Second one is your own local development environment through Docker.
 
 ## Citing
 If you find Stock-Influx useful in your work, and you want to cite our work, please use the following referencee:
-'''
+```
 @inproceedings{wang2022real,
   title={Real-time stock market analytics for improving deployment and accessibility using PySpark and Docker},
   author={Wang, Suyeon and Kim, Jaekyeong and Yang, Yoonsang and Hwang, Jinseong and Han, Jungkyu and Chun, Sejin},
@@ -57,7 +57,7 @@ If you find Stock-Influx useful in your work, and you want to cite our work, ple
   pages={171--175},
   year={2022}
 }
-'''
+```
 
 ## license
 ```
