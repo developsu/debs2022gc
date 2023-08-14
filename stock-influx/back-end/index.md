@@ -1,3 +1,11 @@
+---
+layout: project
+title: debs2022gc/stock-influx/back-end/
+project: debs2022gc
+repo: developsu/debs2022gc
+permalink: /:path/:basename:output_ext
+---
+
 # DEBS 2022 Visualization
 
 

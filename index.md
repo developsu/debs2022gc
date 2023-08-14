@@ -1,3 +1,11 @@
+---
+layout: project
+title: debs2022gc/
+project: debs2022gc
+repo: developsu/debs2022gc
+permalink: /:path/:basename:output_ext
+---
+
 # DEBS 2022 Grand Challenge 
 This github page contributes to DEBS 2022 Grand Challenge. 
 
